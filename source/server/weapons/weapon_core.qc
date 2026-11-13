@@ -2059,6 +2059,10 @@ void() WeaponCore_UpdateSniperScope =
 //
 inline void() WeaponCore_UpdateWeaponStats =
 {
+	if (self.weapon == W_357) {
+		self.weapons[0].weapon_reserve = 80;
+	}
+
 	self.currentammo = self.weapons[0].weapon_reserve;			// Weapon Reserve Ammo
 	self.currentmag = self.weapons[0].weapon_magazine;			// Weapon Magazine
 	self.currentmag2 = self.weapons[0].weapon_magazine_left;	// Left-side Weapon Magazine
