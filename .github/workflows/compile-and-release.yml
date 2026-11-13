@@ -20,11 +20,12 @@ jobs:
           TOOLBOX_HOST_OS: Linux
           TOOLBOX_HOST_ARCH: x86_64
         run: /entrypoint.sh fetch
-      - name: Select Commit
-        run: |
-          git -C /workspace/repos/quakec fetch "https://github.com" main
-          git -C /workspace/repos/quakec checkout --detach "$GITHUB_SHA"
-          echo "QuakeC commit: $(git -C /workspace/repos/quakec rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Checkout Fork Code
+        uses: actions/checkout@v4
+        with:
+          path: fork_code
+      - name: Copy Fork Code
+        run: cp -rf fork_code/. /workspace/repos/quakec/
       - name: Compile
         run: /entrypoint.sh build-quakec
       - name: Zip Progs
@@ -37,4 +38,4 @@ jobs:
           name: standard-nzp-qc
           path: /workspace/repos/quakec/build/standard-nzp-qc.zip
           if-no-files-found: error
-        
+          
