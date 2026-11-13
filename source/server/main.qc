@@ -231,8 +231,8 @@ void() precaches =
 	precache_model ("models/ai/zhc^.mdl");
 
 	// start weapons
-	precache_model ("models/weapons/m1911/v_colt.mdl");
-	precache_model ("models/weapons/m1911/g_colt.mdl");
+	precache_model ("models/weapons/357/v_357.mdl");
+	precache_model ("models/weapons/357/g_357.mdl");
 	precache_model ("models/weapons/knife/v_knife.mdl");
 	precache_model ("models/weapons/grenade/v_grenade.mdl");
 	precache_model ("models/weapons/grenade/g_grenade.mdl");
@@ -266,10 +266,11 @@ void() precaches =
 	precache_sound("sounds/player/pain4.wav");
 
 	// weapons
-	precache_sound("sounds/weapons/colt/magin.wav");
-	precache_sound("sounds/weapons/colt/magout.wav");
-	precache_sound("sounds/weapons/colt/shoot.wav");
-	precache_sound("sounds/weapons/colt/slide.wav");
+	precache_sound("sounds/weapons/357/open.wav");
+	precache_sound("sounds/weapons/357/out.wav");
+	precache_sound("sounds/weapons/357/in.wav");
+	precache_sound("sounds/weapons/357/close.wav");
+	precache_sound("sounds/weapons/357/shoot.wav");
 	precache_sound("sounds/weapons/papfire.wav");
 	precache_sound("sounds/weapons/wonder_weapon.wav");
 
