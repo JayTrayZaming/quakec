@@ -45,10 +45,10 @@ void() Test_RunAllTests;
 
 #endif // QUAKEC_TEST
 
-#define PLAYER_START_HEALTH_EASY		125
-#define PLAYER_START_HEALTH_NORMAL		100
-#define PLAYER_START_HEALTH_HARD		75
-#define PLAYER_START_HEALTH_NIGHTMARE	25
+#define PLAYER_START_HEALTH_EASY		200
+#define PLAYER_START_HEALTH_NORMAL		200
+#define PLAYER_START_HEALTH_HARD		200
+#define PLAYER_START_HEALTH_NIGHTMARE	200
 
 #define PLAYER_CROUCH_DIFFERENCE_HL 	25
 #define PLAYER_PRONE_DIFFERENCE_HL 		23
@@ -1156,7 +1156,7 @@ void() PlayerSpawn =
 		default: break;
 	}
 
-	self.max_health *= game_modifiers.gameplay.player.start_health / 100;
+	self.max_health *= game_modifiers.gameplay.player.start_health / 200;
 	self.max_health = self.health = Gamemode_GetMaxHealthForPlayer(self.max_health, self.perks);
 	
 	// Pick an available slot from 1-8 inclusive.
@@ -1281,7 +1281,7 @@ void() SpectatorSpawn =
 
 	setmodel(self, "models/sprites/null.spr");
 	self.movetype = MOVETYPE_NOCLIP;
-	self.max_health = self.health = 100;
+	self.max_health = self.health = 200;
 	
 	self.fixangle = true;
 
