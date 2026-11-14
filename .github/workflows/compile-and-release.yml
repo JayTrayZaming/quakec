@@ -14,13 +14,29 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 50
-      - name: Rewind to Oct 31 & Apply Your Edits
+      - name: Rewind to Oct 31 & Apply All 3 Mods
         run: |
-          git config user.email "builder@local"
-          git config user.name "Builder"
-          COMMITS=$(git log --author="JayTrayZaming" --reverse --format="%H" -- source/)
           git checkout $(git rev-list -n 1 --before="2026-10-31 19:00:00" main)
-          git cherry-pick --allow-empty $COMMITS
+          python3 -c '
+          # 1. Start with .357 Magnum in Classic Mode (main.qc)
+          p = "source/server/main.qc"
+          s = open(p).read()
+          s = s.replace("W_COLT", "W_357").replace("models/weapons/m1911/v_colt.mdl", "models/weapons/357/v_357.mdl")
+          open(p, "w").write(s)
+
+          # 2. Set Modern Black Ops Health to 150 HP (player_core.qc)
+          p = "source/server/player/player_core.qc"
+          s = open(p).read()
+          s = s.replace("self.health = 100;", "self.health = 150;").replace("self.max_health = 100;", "self.max_health = 150;")
+          open(p, "w").write(s)
+
+          # 3. Infinite Reserve Ammo for .357 Magnum with Reloading (weapon_core.qc)
+          p = "source/server/weapons/weapon_core.qc"
+          s = open(p).read()
+          s = s.replace("inline void() WeaponCore_UpdateWeaponStats =\n{", "void() WeaponCore_UpdateWeaponStats =\n{\n\tif (self.weapon == W_357) { self.weapons[0].weapon_reserve = 80; }")
+          open(p, "w").write(s)
+          '
+          git diff source/
       - name: Compile SSQC
         run: |
           chmod +x bin/fteqcc-cli-lin
@@ -37,3 +53,4 @@ jobs:
           name: standard-nzp-qc
           path: build/standard-nzp-qc.zip
           if-no-files-found: error
+          
