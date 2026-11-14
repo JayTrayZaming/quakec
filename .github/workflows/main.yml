@@ -1,55 +1,56 @@
-name: Reset Fork to Oct 31 Build
+name: Compile QuakeC
 on:
   push:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  Reset-And-Setup:
+  Compile-QC:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Full History
+      - name: Checkout Fork Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      - name: Reset Main to Oct 31 & Set Clean Compiler
+          fetch-depth: 50
+      - name: Rewind to Oct 31 & Apply All 3 Mods
         run: |
-          OCT31_SHA=$(git rev-list -n 1 --before="2026-10-31 19:00:00" main)
-          git reset --hard "$OCT31_SHA"
-          mkdir -p .github/workflows
-          cat << 'EOF' > .github/workflows/compile.yml
-          name: Compile QuakeC
-          on:
-            push:
-              branches: [main]
-          jobs:
-            Compile-QC:
-              runs-on: ubuntu-latest
-              steps:
-                - uses: actions/checkout@v4
-                - name: Compile SSQC
-                  run: |
-                    pip install pandas
-                    chmod +x bin/fteqcc-cli-lin
-                    python3 bin/qc_hash_generator.py -i tools/asset_conversion_table.csv -o source/server/hash_table.qc
-                    mkdir -p build/standard
-                    bin/fteqcc-cli-lin -O3 -Ono-compound_jumps -Wall -srcfile progs/ssqc.src -o build/standard/progs.dat
-                - name: Zip Progs
-                  run: |
-                    cd build
-                    zip -r -j standard-nzp-qc.zip standard/*
-                - name: Upload build artifact
-                  uses: actions/upload-artifact@v4
-                  with:
-                    name: standard-nzp-qc
-                    path: build/standard-nzp-qc.zip
-                    if-no-files-found: error
-          EOF
-          git config user.email "builder@local"
-          git config user.name "Builder"
-          git add .github/workflows/compile.yml
-          git commit -m "Reset fork to Oct 31 PS3 build with clean compiler"
-          git push --force origin main
-          
+          git checkout $(git rev-list -n 1 --before="2026-10-31 19:00:00" main)
+          python3 -c '
+          # 1. Start with .357 Magnum in Classic Mode (main.qc)
+          p = "source/server/main.qc"
+          s = open(p).read()
+          s = s.replace("W_COLT", "W_357").replace("models/weapons/m1911/v_colt.mdl", "models/weapons/357/v_357.mdl")
+          open(p, "w").write(s)
+
+          # 2. Set Modern Black Ops Health to 150 HP (player_core.qc)
+          p = "source/server/player/player_core.qc"
+          s = open(p).read()
+          s = s.replace("self.health = 100;", "self.health = 150;").replace("self.max_health = 100;", "self.max_health = 150;")
+          open(p, "w").write(s)
+
+          # 3. Infinite Reserve Ammo for .357 Magnum with Reloading (weapon_core.qc)
+          p = "source/server/weapons/weapon_core.qc"
+          s = open(p).read()
+          s = s.replace("inline void() WeaponCore_UpdateWeaponStats =\n{", "void() WeaponCore_UpdateWeaponStats =\n{\n\tif (self.weapon == W_357) { self.weapons[0].weapon_reserve = 80; }")
+          open(p, "w").write(s)
+          '
+          git diff source/
+      - name: Compile SSQC
+        run: |
+          pip install pandas fastcrc
+          chmod +x bin/fteqcc-cli-lin
+          python3 bin/qc_hash_generator.py -i tools/asset_conversion_table.csv -o source/server/hash_table.qc
+          mkdir -p build/standard
+          bin/fteqcc-cli-lin -O3 -Ono-compound_jumps -Wall -srcfile progs/ssqc.src -o build/standard/progs.dat
+      - name: Zip Progs
+        run: |
+          cd build
+          zip -r -j standard-nzp-qc.zip standard/*
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: standard-nzp-qc
+          path: build/standard-nzp-qc.zip
+          if-no-files-found: error
