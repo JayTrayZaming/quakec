@@ -24,8 +24,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: fork_code
-      - name: Copy Fork Code
-        run: cp -rf fork_code/. /workspace/repos/quakec/
+      - name: Rewind to Oct 31 PS3 Build & Copy Edits
+        run: |
+          cd /workspace/repos/quakec
+          git checkout $(git rev-list -n 1 --before="2026-10-31 19:00:00" main)
+          cp -f "$GITHUB_WORKSPACE/fork_code/source/server/main.qc" source/server/main.qc
+          cp -f "$GITHUB_WORKSPACE/fork_code/source/server/player/player_core.qc" source/server/player/player_core.qc
+          cp -f "$GITHUB_WORKSPACE/fork_code/source/server/weapons/weapon_core.qc" source/server/weapons/weapon_core.qc
       - name: Compile
         run: /entrypoint.sh build-quakec
       - name: Zip Progs
