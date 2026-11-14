@@ -39,6 +39,7 @@ jobs:
           git diff source/
       - name: Compile SSQC
         run: |
+          pip install pandas
           chmod +x bin/fteqcc-cli-lin
           python3 bin/qc_hash_generator.py -i tools/asset_conversion_table.csv -o source/server/hash_table.qc
           mkdir -p build/standard
