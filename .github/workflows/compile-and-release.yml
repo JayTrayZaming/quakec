@@ -9,41 +9,31 @@ permissions:
 jobs:
   Compile-QC:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/nzp-team/toolbox:main
-    defaults:
-      run:
-        shell: bash
     steps:
-      - name: Toolbox Fetch
-        env:
-          TOOLBOX_HOST_OS: Linux
-          TOOLBOX_HOST_ARCH: x86_64
-        run: /entrypoint.sh fetch
       - name: Checkout Fork Code
         uses: actions/checkout@v4
         with:
-          path: fork_code
           fetch-depth: 50
-      - name: Rewind to Oct 31 & Apply All Your Source Edits
+      - name: Rewind to Oct 31 & Apply Your Edits
         run: |
-          cd /workspace/repos/quakec
-          git checkout $(git rev-list -n 1 --before="2026-10-31 19:00:00" main)
-          git fetch "$GITHUB_WORKSPACE/fork_code" main
           git config user.email "builder@local"
           git config user.name "Builder"
-          COMMITS=$(git -C "$GITHUB_WORKSPACE/fork_code" log --author="JayTrayZaming" --reverse --format="%H" -- source/)
+          COMMITS=$(git log --author="JayTrayZaming" --reverse --format="%H" -- source/)
+          git checkout $(git rev-list -n 1 --before="2026-10-31 19:00:00" main)
           git cherry-pick --allow-empty $COMMITS
-      - name: Compile
-        run: /entrypoint.sh build-quakec
+      - name: Compile SSQC
+        run: |
+          chmod +x bin/fteqcc-cli-lin
+          python3 bin/qc_hash_generator.py -i tools/asset_conversion_table.csv -o source/server/hash_table.qc
+          mkdir -p build/standard
+          bin/fteqcc-cli-lin -O3 -Ono-compound_jumps -Wall -srcfile progs/ssqc.src -o build/standard/progs.dat
       - name: Zip Progs
         run: |
-          cd /workspace/repos/quakec/build
+          cd build
           zip -r -j standard-nzp-qc.zip standard/*
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: standard-nzp-qc
-          path: /workspace/repos/quakec/build/standard-nzp-qc.zip
+          path: build/standard-nzp-qc.zip
           if-no-files-found: error
-          
