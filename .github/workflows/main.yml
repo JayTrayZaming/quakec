@@ -1,0 +1,55 @@
+name: Reset Fork to Oct 31 Build
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  Reset-And-Setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Full History
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reset Main to Oct 31 & Set Clean Compiler
+        run: |
+          OCT31_SHA=$(git rev-list -n 1 --before="2026-10-31 19:00:00" main)
+          git reset --hard "$OCT31_SHA"
+          mkdir -p .github/workflows
+          cat << 'EOF' > .github/workflows/compile.yml
+          name: Compile QuakeC
+          on:
+            push:
+              branches: [main]
+          jobs:
+            Compile-QC:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v4
+                - name: Compile SSQC
+                  run: |
+                    pip install pandas
+                    chmod +x bin/fteqcc-cli-lin
+                    python3 bin/qc_hash_generator.py -i tools/asset_conversion_table.csv -o source/server/hash_table.qc
+                    mkdir -p build/standard
+                    bin/fteqcc-cli-lin -O3 -Ono-compound_jumps -Wall -srcfile progs/ssqc.src -o build/standard/progs.dat
+                - name: Zip Progs
+                  run: |
+                    cd build
+                    zip -r -j standard-nzp-qc.zip standard/*
+                - name: Upload build artifact
+                  uses: actions/upload-artifact@v4
+                  with:
+                    name: standard-nzp-qc
+                    path: build/standard-nzp-qc.zip
+                    if-no-files-found: error
+          EOF
+          git config user.email "builder@local"
+          git config user.name "Builder"
+          git add .github/workflows/compile.yml
+          git commit -m "Reset fork to Oct 31 PS3 build with clean compiler"
+          git push --force origin main
+          
