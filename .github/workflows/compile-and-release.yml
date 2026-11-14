@@ -24,13 +24,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: fork_code
-      - name: Rewind to Oct 31 PS3 Build & Copy Edits
+          fetch-depth: 10
+      - name: Rewind to Oct 31 & Apply Your 3 Edits
         run: |
           cd /workspace/repos/quakec
           git checkout $(git rev-list -n 1 --before="2026-10-31 19:00:00" main)
-          cp -f "$GITHUB_WORKSPACE/fork_code/source/server/main.qc" source/server/main.qc
-          cp -f "$GITHUB_WORKSPACE/fork_code/source/server/player/player_core.qc" source/server/player/player_core.qc
-          cp -f "$GITHUB_WORKSPACE/fork_code/source/server/weapons/weapon_core.qc" source/server/weapons/weapon_core.qc
+          git fetch "$GITHUB_WORKSPACE/fork_code" main
+          git config user.email "builder@local"
+          git config user.name "Builder"
+          git cherry-pick 6894cb4 25da0b3 0ebc179
       - name: Compile
         run: /entrypoint.sh build-quakec
       - name: Zip Progs
@@ -43,4 +45,3 @@ jobs:
           name: standard-nzp-qc
           path: /workspace/repos/quakec/build/standard-nzp-qc.zip
           if-no-files-found: error
-          
