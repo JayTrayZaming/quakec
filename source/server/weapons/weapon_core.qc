@@ -2057,7 +2057,7 @@ void() WeaponCore_UpdateSniperScope =
 // can't be used for this task. This is where we store
 // them for pass-off.
 //
-inline void() WeaponCore_UpdateWeaponStats =
+void() WeaponCore_UpdateWeaponStats =
 {
 	if (self.weapon == W_357) {
 		self.weapons[0].weapon_reserve = 80;
